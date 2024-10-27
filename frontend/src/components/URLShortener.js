@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { AlertCircle, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import React, { useState } from "react";
+import { AlertCircle, Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
@@ -43,15 +44,15 @@ const URLShortener = ({ onShorten }) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="w-full max-w-3xl mx-auto">
       {error && (
-        <div className="mb-4 p-4 bg-red-900/50 border border-red-500 text-red-200 rounded-lg flex items-center gap-2">
-          <AlertCircle className="h-5 w-5" />
-          <span>{error}</span>
-        </div>
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
-      <form onSubmit={handleSubmit} className="mt-8 mb-4 space-y-4">
-        <div className="flex items-center bg-gray-800 rounded-lg overflow-hidden">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="flex rounded-lg bg-gray-800">
           <input
             type="url"
             value={url}
@@ -61,7 +62,7 @@ const URLShortener = ({ onShorten }) => {
             required
           />
         </div>
-        <div className="flex items-center bg-gray-800 rounded-lg overflow-hidden">
+        <div className="flex rounded-lg bg-gray-800">
           <input
             type="text"
             value={slug}
@@ -75,12 +76,14 @@ const URLShortener = ({ onShorten }) => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full px-8 py-4 bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-50 rounded-lg transition-colors flex items-center justify-center gap-2"
+          className="w-full p-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
         >
-          {loading && <Loader2 className="h-5 w-5 animate-spin" />}
+          {loading && <Loader2 className="animate-spin h-4 w-4 mr-2" />}
           {loading ? "Shortening..." : "Shorten Now!"}
         </button>
       </form>
     </div>
   );
 };
+
+export default URLShortener;
