@@ -1,145 +1,80 @@
-import React, { useState, useEffect } from "react";
-import { AlertCircle, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import React from "react";
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-
-const URLList = ({ urls, currentPage, totalPages, onPageChange }) => {
-  if (!urls.length) {
-    return (
-      <div className="text-center text-gray-400 py-8">
-        No shortened URLs found
-      </div>
-    );
-  }
-
+const URLList = ({ urls }) => {
   return (
-    <div className="space-y-4">
-      <div className="grid gap-4">
-        {urls.map((url) => (
-          <div key={url.slug} className="bg-gray-800 p-4 rounded-lg space-y-2">
-            <div className="flex justify-between items-start">
-              <div className="text-blue-400 font-medium break-all">
+    <div className="overflow-x-auto">
+      <table className="w-full mt-8">
+        <thead>
+          <tr className="text-left text-gray-400 border-b border-gray-800">
+            <th className="py-3 px-4">Short Link</th>
+            <th className="py-3 px-4">Original Link</th>
+            <th className="py-3 px-4">QR Code</th>
+            <th className="py-3 px-4">Clicks</th>
+            <th className="py-3 px-4">Status</th>
+            <th className="py-3 px-4">Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {urls.map((url) => (
+            <tr
+              key={url.slug}
+              className="border-b border-gray-800 hover:bg-gray-800"
+            >
+              <td className="py-4 px-4">
                 <a
-                  href={`${API_BASE_URL}/${url.slug}`}
+                  href={`/${url.slug}`}
+                  className="text-blue-500 hover:text-blue-400"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  {`${API_BASE_URL}/${url.slug}`}
+                  /{url.slug}
                 </a>
-              </div>
-              <span className="text-gray-400 text-sm">
+              </td>
+              <td className="py-4 px-4 truncate max-w-xs">
+                <a
+                  href={url.url}
+                  className="text-gray-300 hover:text-white"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {" "}
+                  {url.url}
+                </a>
+              </td>
+              <td className="py-4 px-4">
+                <svg
+                  className="w-6 h-6 text-gray-400"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                </svg>
+              </td>
+              <td className="py-4 px-4">{url.clicks}</td>
+              <td className="py-4 px-4">
+                <span
+                  className={`px-2 py-1 rounded-full text-xs ${
+                    url.active
+                      ? "bg-green-900 text-green-300"
+                      : "bg-yellow-900 text-yellow-300"
+                  }`}
+                >
+                  {url.active ? "Active" : "Inactive"}
+                </span>
+              </td>
+              <td className="py-4 px-4 text-gray-400">
                 {new Date(url.createdAt).toLocaleDateString()}
-              </span>
-            </div>
-            <div className="text-gray-400 text-sm break-all">{url.url}</div>
-            <div className="text-gray-500 text-sm">
-              Clicks: {url.clicks.toLocaleString()}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-4 mt-6">
-          <button
-            onClick={() => onPageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="p-2 rounded-lg bg-gray-800 text-white disabled:opacity-50"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <span className="text-gray-400">
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={() => onPageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="p-2 rounded-lg bg-gray-800 text-white disabled:opacity-50"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
-        </div>
-      )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
 
-const App = () => {
-  const [urls, setUrls] = useState([]);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [itemsPerPage] = useState(10);
-
-  const fetchUrls = async (page) => {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/urls?page=${page}&limit=${itemsPerPage}`,
-        {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setUrls(data.urls);
-      setTotalPages(data.pagination.totalPages);
-      setError(null);
-    } catch (error) {
-      console.error("Error fetching URLs:", error);
-      setError("Failed to load URLs. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUrls(currentPage);
-  }, [currentPage, itemsPerPage]);
-
-  const handleShorten = (newUrl) => {
-    setUrls((prevUrls) => [newUrl, ...prevUrls]);
-  };
-
-  const handlePageChange = (newPage) => {
-    setCurrentPage(newPage);
-    window.scrollTo(0, 0);
-  };
-
-  return (
-    <div className="max-w-4xl mx-auto p-4 space-y-8">
-      <URLShortener onShorten={handleShorten} />
-
-      {error && (
-        <div className="p-4 bg-red-900/50 border border-red-500 text-red-200 rounded-lg flex items-center gap-2">
-          <AlertCircle className="h-5 w-5" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      {loading ? (
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-        </div>
-      ) : (
-        <URLList
-          urls={urls}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-        />
-      )}
-    </div>
-  );
-};
-
-export default App;
+export default URLList;
