@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { auth, provider } from "../firebase/config";
-import { signInWithPopup, signOut } from "firebase/auth";
+import { auth, provider } from "../firebase/config.js";
+import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 
 const Header = () => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUser(user);
       } else {
@@ -41,13 +41,13 @@ const Header = () => {
         <div>
           {!user ? (
             <>
-              <button
+              <button 
                 onClick={handleLogin}
                 className="mr-4 text-gray-300 hover:text-white"
               >
                 Login
               </button>
-              <button
+              <button 
                 onClick={handleLogin}
                 className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
               >
@@ -60,7 +60,7 @@ const Header = () => {
                 {user.displayName || user.email}
               </span>
               {user.photoURL && (
-                <img
+                <img 
                   src={user.photoURL}
                   alt="Profile"
                   className="w-8 h-8 rounded-full"
