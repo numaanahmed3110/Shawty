@@ -141,7 +141,7 @@ router.post("/shorten", async (req, res) => {
     // Create shortened URL
     const shortenedUrl = `${
       req.protocol
-    }://${"https://shawty3110.vercel.app/"}/${slug}`;
+    }://${"shawty3110.vercel.app/"}/${slug}`;
 
     // Create new URL document
     const newUrl = new Url({

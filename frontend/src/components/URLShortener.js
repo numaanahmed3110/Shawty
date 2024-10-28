@@ -96,8 +96,8 @@ const URLShortener = ({ onShorten }) => {
 
       {/* Countdown Message */}
       {countdown !== null && (
-        <div className="text-center text-white bg-blue-600 p-4 rounded-lg mt-4 animate-pulse">
-          Page will reload in {countdown} seconds...
+        <div className="text-center text-white p-4 rounded-lg mt-4 animate-pulse">
+          Your url will be ready in {countdown} seconds...
         </div>
       )}
     </div>
