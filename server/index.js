@@ -1,12 +1,10 @@
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
-import helmet from "helmet";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
-import { nanoid } from "nanoid";
+// making unique keys............
+import makeKey from "@jrc03c/make-key";
 
 const app = express();
 const router = express.Router();
@@ -47,7 +45,7 @@ const connectWithRetry = async () => {
 
 connectWithRetry();
 
-// Schema definition
+// Schema definition..........
 const urlSchema = new mongoose.Schema({
   slug: {
     type: String,
@@ -55,6 +53,11 @@ const urlSchema = new mongoose.Schema({
     unique: true,
     trim: true,
     index: true,
+  },
+  shortenedUrl: {
+    type: String,
+    required: true,
+    trim: true,
   },
   url: {
     type: String,
@@ -77,60 +80,77 @@ const urlSchema = new mongoose.Schema({
 
 const Url = mongoose.model("Url", urlSchema);
 
+// Function to check if slug exists and generate a unique one
+async function generateUniqueSlug() {
+  let slug = makeKey(6);
+  let isUnique = false;
+
+  while (!isUnique) {
+    // Check if slug exists in database
+    const existingUrl = await Url.findOne({ slug });
+    if (!existingUrl) {
+      isUnique = true;
+    } else {
+      // If slug exists, generate a new one
+      slug = makeKey(6);
+    }
+  }
+
+  return slug;
+}
+
 // URL Shortening endpoint
 router.post("/shorten", async (req, res) => {
   console.log("Received shortening request:", req.body);
   try {
-    let { url, slug } = req.body;
+    // Destructure URL from request body
+    const { url } = req.body;
 
     // Validate URL
     if (!url) {
       return res.status(400).json({ error: "URL is required" });
     }
+
     // Add http:// if protocol is missing
-    if (!url.startsWith("http://") && !url.startsWith("https://")) {
-      url = "http://" + url;
-    }
-    // Validate and sanitize slug
-    if (slug) {
-      // Check if slug is already taken
-      const existingUrl = await Url.findOne({ slug });
-      if (existingUrl) {
-        return res
-          .status(400)
-          .json({ error: "This custom URL is already in use" });
-      }
-      // Sanitize slug
-      slug = slug
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-zA-Z0-9-]/g, "");
-    } else {
-      // Generate random slug
-      slug = nanoid(7);
+    let normalizedUrl = url;
+    if (
+      !normalizedUrl.startsWith("http://") &&
+      !normalizedUrl.startsWith("https://")
+    ) {
+      normalizedUrl = "http://" + normalizedUrl;
     }
 
+    // Generate unique slug
+    const slug = await generateUniqueSlug();
+
     // Prevent shortening of internal links
-    if (url.includes("shawty3110.vercel.app")) {
+    if (normalizedUrl.includes(req.get("host"))) {
       return res
         .status(400)
         .json({ error: "Cannot shorten URLs from this domain" });
     }
 
+    // Create shortened URL
+    const shortenedUrl = `${req.protocol}://${req.get("host")}/${slug}`;
+
     // Create new URL document
     const newUrl = new Url({
-      url,
+      url: normalizedUrl,
       slug,
+      shortenedUrl,
       clicks: 0,
       active: true,
     });
+
     // Save to database
     const savedUrl = await newUrl.save();
     console.log("Successfully shortened URL:", savedUrl);
+
+    // Send response
     res.status(201).json({
       slug: savedUrl.slug,
       originalUrl: savedUrl.url,
-      shortUrl: `${req.protocol}://${req.get("host")}/${savedUrl.slug}`,
+      shortenedUrl: savedUrl.shortenedUrl,
       clicks: savedUrl.clicks,
       active: savedUrl.active,
       createdAt: savedUrl.createdAt,
@@ -198,4 +218,3 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
-

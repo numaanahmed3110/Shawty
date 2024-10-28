@@ -1,0 +1,33 @@
+{
+  "name": "@jrc03c/js-math-tools",
+  "version": "0.0.63",
+  "description": "some math tools for JS",
+  "main": "src/index.js",
+  "scripts": {
+    "build": "esbuild src/index.js --bundle --outfile=dist/js-math-tools.js --minify",
+    "watch": "esbuild src/index.js --bundle --outfile=dist/js-math-tools.js --minify --watch",
+    "test": "./test.sh",
+    "pub": "npm version patch --force && npm publish --access=public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jrc03c/js-math-tools.git"
+  },
+  "author": "jrc03c",
+  "bugs": {
+    "url": "https://github.com/jrc03c/js-math-tools/issues"
+  },
+  "homepage": "https://github.com/jrc03c/js-math-tools#readme",
+  "keywords": [
+    "js",
+    "math"
+  ],
+  "license": "ISC",
+  "devDependencies": {
+    "@jrc03c/freeze": "github:jrc03c/freeze",
+    "esbuild": "^0.14.21",
+    "eslint": "^8.21.0",
+    "jest": "^29.0.3",
+    "madge": "^5.0.1"
+  }
+}
