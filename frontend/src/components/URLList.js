@@ -6,7 +6,7 @@ const URLList = ({ urls }) => {
       <table className="w-full mt-8">
         <thead>
           <tr className="text-left text-gray-400 border-b border-gray-800">
-            <th className="py-3 px-4">Short Link</th>
+            <th className="py-3 px-4">Shortned Link</th>
             <th className="py-3 px-4">Original Link</th>
             <th className="py-3 px-4">QR Code</th>
             <th className="py-3 px-4">Clicks</th>
