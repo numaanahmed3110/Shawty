@@ -194,25 +194,17 @@ router.get("/urls", async (req, res) => {
 });
 
 // Redirect endpoint..........................................................
-// Redirect endpoint
+// Alternative version with more explicit redirect handling
 app.get("/:slug", async (req, res) => {
-  // Extract slug from URL parameters
   const { slug } = req.params;
 
   try {
-    // Find the URL document and update click count
     const url = await Url.findOneAndUpdate(
-      {
-        slug,
-        active: true,
-      },
-      {
-        $inc: { clicks: 1 },
-      },
+      { slug, active: true },
+      { $inc: { clicks: 1 } },
       { new: true }
     );
 
-    // If URL not found, return 404
     if (!url) {
       return res.status(404).json({
         success: false,
@@ -220,23 +212,20 @@ app.get("/:slug", async (req, res) => {
       });
     }
 
-    // Get the original URL from the document
+    // Get the original URL
     let destinationUrl = url.url;
 
-    // Ensure URL has proper protocol
-    if (
-      !destinationUrl.startsWith("http://") &&
-      !destinationUrl.startsWith("https://")
-    ) {
+    // Force HTTPS if no protocol is specified
+    if (!destinationUrl.match(/^[a-zA-Z]+:\/\//)) {
       destinationUrl = "https://" + destinationUrl;
     }
 
-    // Log the redirect (for debugging)
-    console.log("Redirecting to:", destinationUrl);
+    // Log the redirect attempt
+    console.log(`Redirecting slug: ${slug} to URL: ${destinationUrl}`);
 
-    // Perform redirect with absolute URL
-    // Using 301 (permanent redirect) for better SEO
-    return res.status(301).redirect(destinationUrl);
+    // Set explicit headers for redirect
+    res.setHeader("Location", destinationUrl);
+    return res.status(301).end();
   } catch (error) {
     console.error("Redirect error:", error);
     return res.status(500).json({
