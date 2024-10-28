@@ -27,7 +27,8 @@ const URLList = ({ urls }) => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  /{url.shortenedUrl}
+                  {" "}
+                  {url.shortenedUrl}
                 </a>
               </td>
               <td className="py-4 px-4 truncate max-w-xs">
