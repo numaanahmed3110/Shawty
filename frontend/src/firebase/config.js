@@ -1,7 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { GoogleAuthProvider } from "firebase/auth";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -21,8 +20,16 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firebase Authentication and get a reference to the service
+// Initialize Auth with specific settings
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
+
+// Add additional scopes if needed
+provider.addScope("https://www.googleapis.com/auth/contacts.readonly");
+
+// Set custom parameters
+provider.setCustomParameters({
+  prompt: "select_account", // Forces account selection even when one account is available
+});
 
 export { auth, provider };

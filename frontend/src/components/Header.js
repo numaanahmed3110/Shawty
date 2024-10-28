@@ -4,6 +4,7 @@ import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 
 const Header = () => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -14,23 +15,47 @@ const Header = () => {
       }
     });
 
-    // Cleanup subscription
     return () => unsubscribe();
   }, []);
 
   const handleLogin = async () => {
+    if (loading) return; // Prevent multiple clicks
+
+    setLoading(true);
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      setUser(result.user);
     } catch (error) {
-      alert(error.message);
+      // Handle specific error cases
+      switch (error.code) {
+        case "auth/cancelled-popup-request":
+          console.log("Popup closed by user");
+          break;
+        case "auth/popup-blocked":
+          alert("Please allow popups for this website");
+          break;
+        case "auth/popup-closed-by-user":
+          console.log("Popup closed by user");
+          break;
+        default:
+          alert(error.message);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleLogout = async () => {
+    if (loading) return;
+
+    setLoading(true);
     try {
       await signOut(auth);
+      setUser(null);
     } catch (error) {
       alert(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -41,17 +66,23 @@ const Header = () => {
         <div>
           {!user ? (
             <>
-              <button 
+              <button
                 onClick={handleLogin}
-                className="mr-4 text-gray-300 hover:text-white"
+                disabled={loading}
+                className={`mr-4 text-gray-300 hover:text-white ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               >
-                Login
+                {loading ? "Loading..." : "Login"}
               </button>
-              <button 
+              <button
                 onClick={handleLogin}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                disabled={loading}
+                className={`bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               >
-                Register Now
+                {loading ? "Loading..." : "Register Now"}
               </button>
             </>
           ) : (
@@ -60,7 +91,7 @@ const Header = () => {
                 {user.displayName || user.email}
               </span>
               {user.photoURL && (
-                <img 
+                <img
                   src={user.photoURL}
                   alt="Profile"
                   className="w-8 h-8 rounded-full"
@@ -68,9 +99,12 @@ const Header = () => {
               )}
               <button
                 onClick={handleLogout}
-                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
+                disabled={loading}
+                className={`bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               >
-                Logout
+                {loading ? "Loading..." : "Logout"}
               </button>
             </div>
           )}
