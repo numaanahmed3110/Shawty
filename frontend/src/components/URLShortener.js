@@ -3,6 +3,7 @@ import React, { useState } from "react";
 const URLShortener = ({ onShorten }) => {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const [countdown, setCountdown] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,8 +25,22 @@ const URLShortener = ({ onShorten }) => {
         throw new Error(data.error || "Failed to shorten URL");
       }
 
+      // Call onShorten with the data
       onShorten(data);
       setUrl("");
+
+      // Start countdown
+      setCountdown(5);
+      const countdownInterval = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            window.location.reload();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     } catch (error) {
       console.error("Error:", error);
       // You might want to add error handling UI here
@@ -78,6 +93,13 @@ const URLShortener = ({ onShorten }) => {
           )}
         </button>
       </form>
+
+      {/* Countdown Message */}
+      {countdown !== null && (
+        <div className="text-center text-white bg-blue-600 p-4 rounded-lg mt-4 animate-pulse">
+          Page will reload in {countdown} seconds...
+        </div>
+      )}
     </div>
   );
 };
