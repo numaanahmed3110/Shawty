@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { auth, provider } from "../firebase/config.js";
-import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
+import {
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged,
+  fetchSignInMethodsForEmail,
+} from "firebase/auth";
 
 const Header = () => {
   const [user, setUser] = useState(null);
@@ -18,15 +23,71 @@ const Header = () => {
     return () => unsubscribe();
   }, []);
 
-  const handleLogin = async () => {
-    if (loading) return; // Prevent multiple clicks
+  const checkIfUserExists = async (email) => {
+    try {
+      const signInMethods = await fetchSignInMethodsForEmail(auth, email);
+      return signInMethods.length > 0;
+    } catch (error) {
+      console.error("Error checking user existence:", error);
+      return false;
+    }
+  };
 
+  const handleLogin = async () => {
+    if (loading) return;
     setLoading(true);
+
     try {
       const result = await signInWithPopup(auth, provider);
-      setUser(result.user);
+      const userExists = await checkIfUserExists(result.user.email);
+
+      if (!userExists) {
+        // Handle new user
+        alert("You don't have an account. Please register first.");
+        await signOut(auth);
+        setUser(null);
+      } else {
+        // Existing user
+        setUser(result.user);
+      }
     } catch (error) {
-      // Handle specific error cases
+      switch (error.code) {
+        case "auth/cancelled-popup-request":
+          console.log("Popup closed by user");
+          break;
+        case "auth/popup-blocked":
+          alert("Please allow popups for this website");
+          break;
+        case "auth/popup-closed-by-user":
+          console.log("Popup closed by user");
+          break;
+        default:
+          alert(error.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegister = async () => {
+    if (loading) return;
+    setLoading(true);
+
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const userExists = await checkIfUserExists(result.user.email);
+
+      if (userExists) {
+        alert("You already have an account. Please login instead.");
+        await signOut(auth);
+        setUser(null);
+      } else {
+        // Here you can add additional registration logic
+        // like storing extra user data in your database
+        setUser(result.user);
+        alert("Registration successful!");
+      }
+    } catch (error) {
       switch (error.code) {
         case "auth/cancelled-popup-request":
           console.log("Popup closed by user");
@@ -47,8 +108,8 @@ const Header = () => {
 
   const handleLogout = async () => {
     if (loading) return;
-
     setLoading(true);
+
     try {
       await signOut(auth);
       setUser(null);
@@ -76,7 +137,7 @@ const Header = () => {
                 {loading ? "Loading..." : "Login"}
               </button>
               <button
-                onClick={handleLogin}
+                onClick={handleRegister}
                 disabled={loading}
                 className={`bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 ${
                   loading ? "opacity-50 cursor-not-allowed" : ""
