@@ -22,7 +22,7 @@ const URLList = ({ urls }) => {
             >
               <td className="py-4 px-4">
                 <a
-                  href={`/${url.slug}`}
+                  href={`/${url.shortenedUrl}`}
                   className="text-blue-500 hover:text-blue-400"
                   target="_blank"
                   rel="noopener noreferrer"
