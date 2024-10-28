@@ -102,13 +102,20 @@ async function generateUniqueSlug() {
 // URL Shortening endpoint
 router.post("/shorten", async (req, res) => {
   console.log("Received shortening request:", req.body);
+
   try {
+    // Add a 5 second delay
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
     // Destructure URL from request body
     const { url } = req.body;
 
     // Validate URL
     if (!url) {
-      return res.status(400).json({ error: "URL is required" });
+      return res.status(400).json({
+        success: false,
+        error: "URL is required",
+      });
     }
 
     // Add http:// if protocol is missing
@@ -125,9 +132,10 @@ router.post("/shorten", async (req, res) => {
 
     // Prevent shortening of internal links
     if (normalizedUrl.includes(req.get("host"))) {
-      return res
-        .status(400)
-        .json({ error: "Cannot shorten URLs from this domain" });
+      return res.status(400).json({
+        success: false,
+        error: "Cannot shorten URLs from this domain",
+      });
     }
 
     // Create shortened URL
@@ -146,18 +154,22 @@ router.post("/shorten", async (req, res) => {
     const savedUrl = await newUrl.save();
     console.log("Successfully shortened URL:", savedUrl);
 
-    // Send response
-    res.status(201).json({
-      slug: savedUrl.slug,
-      originalUrl: savedUrl.url,
-      shortenedUrl: savedUrl.shortenedUrl,
-      clicks: savedUrl.clicks,
-      active: savedUrl.active,
-      createdAt: savedUrl.createdAt,
+    // Send success response
+    return res.status(201).json({
+      success: true,
+      data: {
+        slug: savedUrl.slug,
+        originalUrl: savedUrl.url,
+        shortenedUrl: savedUrl.shortenedUrl,
+        clicks: savedUrl.clicks,
+        active: savedUrl.active,
+        createdAt: savedUrl.createdAt,
+      },
     });
   } catch (error) {
-    console.error("Error shortening URL:", error);
-    res.status(500).json({
+    console.error("Detailed error:", error);
+    return res.status(500).json({
+      success: false,
       error: "Failed to shorten URL",
       details: error.message,
     });
