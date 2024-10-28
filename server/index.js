@@ -194,43 +194,49 @@ router.get("/urls", async (req, res) => {
 });
 
 // Redirect endpoint..........................................................
+// Redirect endpoint
 app.get("/:slug", async (req, res) => {
   // Extract slug from URL parameters
   const { slug } = req.params;
 
   try {
-    // Find the URL document and update click count atomically
+    // Find the URL document and update click count
     const url = await Url.findOneAndUpdate(
       {
         slug,
-        active: true, // Only redirect if the URL is active
+        active: true,
       },
       {
-        $inc: { clicks: 1 }, // Increment the clicks counter
+        $inc: { clicks: 1 },
       },
-      { new: true } // Return the updated document
+      { new: true }
     );
 
-    // If URL is found, redirect to it
-    if (url) {
-      // Ensure URL has proper protocol
-      let redirectUrl = url.url;
-      if (
-        !redirectUrl.startsWith("http://") &&
-        !redirectUrl.startsWith("https://")
-      ) {
-        redirectUrl = "http://" + redirectUrl;
-      }
-
-      // Perform the redirect
-      return res.redirect(redirectUrl);
+    // If URL not found, return 404
+    if (!url) {
+      return res.status(404).json({
+        success: false,
+        error: "Short URL not found",
+      });
     }
 
-    // If URL is not found, return 404
-    return res.status(404).json({
-      success: false,
-      error: "Short URL not found",
-    });
+    // Get the original URL from the document
+    let destinationUrl = url.url;
+
+    // Ensure URL has proper protocol
+    if (
+      !destinationUrl.startsWith("http://") &&
+      !destinationUrl.startsWith("https://")
+    ) {
+      destinationUrl = "https://" + destinationUrl;
+    }
+
+    // Log the redirect (for debugging)
+    console.log("Redirecting to:", destinationUrl);
+
+    // Perform redirect with absolute URL
+    // Using 301 (permanent redirect) for better SEO
+    return res.status(301).redirect(destinationUrl);
   } catch (error) {
     console.error("Redirect error:", error);
     return res.status(500).json({
