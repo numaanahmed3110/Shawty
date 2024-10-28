@@ -105,7 +105,7 @@ router.post("/shorten", async (req, res) => {
 
   try {
     // Add a 5 second delay
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    await new Promise((resolve) => setTimeout(resolve, 4000));
 
     // Destructure URL from request body
     const { url } = req.body;
