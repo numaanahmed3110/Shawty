@@ -195,57 +195,47 @@ router.get("/urls", async (req, res) => {
 
 // Redirect endpoint..........................................................
 app.get("/:slug", async (req, res) => {
+  // Extract slug from URL parameters
   const { slug } = req.params;
-  console.log(`Redirect request received for slug: ${slug}`);
 
   try {
-    // 1. Find and update the URL document
+    // Find the URL document and update click count atomically
     const url = await Url.findOneAndUpdate(
       {
         slug,
-        active: true, // Only redirect if URL is active
+        active: true, // Only redirect if the URL is active
       },
       {
-        $inc: { clicks: 1 }, // Increment clicks
-        $set: { lastAccessedAt: new Date() }, // Update last access time
+        $inc: { clicks: 1 }, // Increment the clicks counter
       },
-      {
-        new: true, // Return updated document
-        runValidators: true, // Run schema validators
+      { new: true } // Return the updated document
+    );
+
+    // If URL is found, redirect to it
+    if (url) {
+      // Ensure URL has proper protocol
+      let redirectUrl = url.url;
+      if (
+        !redirectUrl.startsWith("http://") &&
+        !redirectUrl.startsWith("https://")
+      ) {
+        redirectUrl = "http://" + redirectUrl;
       }
-    );
 
-    // 2. Handle URL not found
-    if (!url) {
-      console.log(`URL not found for slug: ${slug}`);
-      return res.status(404).render("error", {
-        // Assuming you have an error view
-        error: "Short link not found or has been deactivated",
-      });
+      // Perform the redirect
+      return res.redirect(redirectUrl);
     }
 
-    // 3. Validate the original URL
-    if (!url.url.startsWith("http://") && !url.url.startsWith("https://")) {
-      url.url = "http://" + url.url;
-    }
-
-    // 4. Log the redirect
-    console.log(
-      `Redirecting ${slug} to ${url.url} (Click count: ${url.clicks})`
-    );
-
-    // 5. Perform the redirect
-    return res.redirect(url.url);
-  } catch (error) {
-    // 6. Error handling
-    console.error("Error during redirect:", {
-      slug,
-      error: error.message,
-      stack: error.stack,
+    // If URL is not found, return 404
+    return res.status(404).json({
+      success: false,
+      error: "Short URL not found",
     });
-
-    return res.status(500).render("error", {
-      error: "An error occurred while processing your request",
+  } catch (error) {
+    console.error("Redirect error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Error processing redirect",
     });
   }
 });
