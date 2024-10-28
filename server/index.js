@@ -131,7 +131,7 @@ router.post("/shorten", async (req, res) => {
     const slug = await generateUniqueSlug();
 
     // Prevent shortening of internal links
-    if (normalizedUrl.includes(req.get("host"))) {
+    if (normalizedUrl.includes("https://shawty3110.vercel.app")) {
       return res.status(400).json({
         success: false,
         error: "Cannot shorten URLs from this domain",
@@ -139,9 +139,7 @@ router.post("/shorten", async (req, res) => {
     }
 
     // Create shortened URL
-    const shortenedUrl = `${
-      req.protocol
-    }://${"shawty3110.vercel.app/"}/${slug}`;
+    const shortenedUrl = `${req.protocol}://${"shawty3110.vercel.app"}/${slug}`;
 
     // Create new URL document
     const newUrl = new Url({
@@ -195,23 +193,60 @@ router.get("/urls", async (req, res) => {
   }
 });
 
-// Redirect endpoint
+// Redirect endpoint..........................................................
 app.get("/:slug", async (req, res) => {
   const { slug } = req.params;
+  console.log(`Redirect request received for slug: ${slug}`);
+
   try {
+    // 1. Find and update the URL document
     const url = await Url.findOneAndUpdate(
-      { slug },
-      { $inc: { clicks: 1 } },
-      { new: true }
+      {
+        slug,
+        active: true, // Only redirect if URL is active
+      },
+      {
+        $inc: { clicks: 1 }, // Increment clicks
+        $set: { lastAccessedAt: new Date() }, // Update last access time
+      },
+      {
+        new: true, // Return updated document
+        runValidators: true, // Run schema validators
+      }
     );
 
-    if (url) {
-      return res.redirect(url.url);
+    // 2. Handle URL not found
+    if (!url) {
+      console.log(`URL not found for slug: ${slug}`);
+      return res.status(404).render("error", {
+        // Assuming you have an error view
+        error: "Short link not found or has been deactivated",
+      });
     }
-    return res.status(404).json({ error: "URL not found" });
+
+    // 3. Validate the original URL
+    if (!url.url.startsWith("http://") && !url.url.startsWith("https://")) {
+      url.url = "http://" + url.url;
+    }
+
+    // 4. Log the redirect
+    console.log(
+      `Redirecting ${slug} to ${url.url} (Click count: ${url.clicks})`
+    );
+
+    // 5. Perform the redirect
+    return res.redirect(url.url);
   } catch (error) {
-    console.error("Error redirecting:", error);
-    return res.status(500).json({ error: "Server error" });
+    // 6. Error handling
+    console.error("Error during redirect:", {
+      slug,
+      error: error.message,
+      stack: error.stack,
+    });
+
+    return res.status(500).render("error", {
+      error: "An error occurred while processing your request",
+    });
   }
 });
 
