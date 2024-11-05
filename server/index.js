@@ -8,20 +8,25 @@ import makeKey from "@jrc03c/make-key";
 
 const app = express();
 const router = express.Router();
+// Mount router
+app.use("/api", router);
+// Add this route handler at the beginning of your router configuration
+router.get("/", (req, res) => {
+  res.status(200).json({ message: "Welcome to the URL Shortener API" });
+});
 
-dotenv.config();
-
-// CORS configuration - must be first
-// CORS configuration
 // CORS configuration
 app.use(
   cors({
-    origin: "https://shawty3110.vercel.app",
+    origin: "*",
     methods: "GET,POST,PUT,DELETE,OPTIONS",
-    allowedHeaders: "content-type,authorization",
+    allowedHeaders: "*",
     credentials: true,
   })
 );
+
+dotenv.config();
+
 // Middleware
 app.use(express.json());
 app.use(morgan("dev"));
@@ -97,13 +102,6 @@ async function generateUniqueSlug() {
 
   return slug;
 }
-
-// Mount router
-app.use("/api", router);
-// Add this route handler at the beginning of your router configuration
-router.get("/", (req, res) => {
-  res.status(200).json({ message: "Welcome to the URL Shortener API" });
-});
 
 // URL Shortening endpoint
 router.post("/shorten", async (req, res) => {
