@@ -3,6 +3,8 @@ import cors from "cors";
 import morgan from "morgan";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import path from "path";
+
 // making unique keys............
 import makeKey from "@jrc03c/make-key";
 
@@ -83,9 +85,8 @@ const urlSchema = new mongoose.Schema({
 });
 
 const Url = mongoose.model("Url", urlSchema);
-
 // Serve static files from the "public" directory
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(path.dirname(import.meta.url), "public")));
 
 // Define a route to serve the font file
 app.get("/type-font/:filename", (req, res) => {
@@ -93,6 +94,7 @@ app.get("/type-font/:filename", (req, res) => {
     path.join(__dirname, "public", "type-font", req.params.filename)
   );
 });
+
 // Function to check if slug exists and generate a unique one
 async function generateUniqueSlug() {
   let slug = makeKey(6);
