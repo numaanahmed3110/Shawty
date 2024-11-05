@@ -12,17 +12,15 @@ const router = express.Router();
 dotenv.config();
 
 // CORS configuration - must be first
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "https://shawty3110.vercel.app");
-  res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.header("Access-Control-Allow-Credentials", "true");
-  // Handle preflight
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-  next();
-});
+// CORS configuration
+app.use(
+  cors({
+    origin: "https://shawty3110.vercel.app",
+    methods: "GET,POST,PUT,DELETE,OPTIONS",
+    allowedHeaders: "content-type,authorization",
+    credentials: true,
+  })
+);
 // Middleware
 app.use(express.json());
 app.use(morgan("dev"));
