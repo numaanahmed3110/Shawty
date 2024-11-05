@@ -84,6 +84,15 @@ const urlSchema = new mongoose.Schema({
 
 const Url = mongoose.model("Url", urlSchema);
 
+// Serve static files from the "public" directory
+app.use(express.static(path.join(__dirname, "public")));
+
+// Define a route to serve the font file
+app.get("/type-font/:filename", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "public", "type-font", req.params.filename)
+  );
+});
 // Function to check if slug exists and generate a unique one
 async function generateUniqueSlug() {
   let slug = makeKey(6);
