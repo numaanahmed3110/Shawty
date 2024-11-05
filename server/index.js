@@ -98,7 +98,7 @@ async function generateUniqueSlug() {
 }
 
 // Add this route handler at the beginning of your router configuration
-router.get("/", (req, res) => {
+router.get("/api", (req, res) => {
   res.status(200).json({ message: "Welcome to the URL Shortener API" });
 });
 // URL Shortening endpoint
@@ -141,7 +141,9 @@ router.post("/shorten", async (req, res) => {
     }
 
     // Create shortened URL
-    const shortenedUrl = `${req.protocol}://${"shawty3110.vercel.app"}/${slug}`;
+    const shortenedUrl = `${
+      req.protocol
+    }://${"shawty3110.vercel.app/"}/${slug}`;
 
     // Create new URL document
     const newUrl = new Url({
