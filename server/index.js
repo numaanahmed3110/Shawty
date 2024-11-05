@@ -97,6 +97,10 @@ async function generateUniqueSlug() {
   return slug;
 }
 
+// Add this route handler at the beginning of your router configuration
+router.get("/", (req, res) => {
+  res.status(200).json({ message: "Welcome to the URL Shortener API" });
+});
 // URL Shortening endpoint
 router.post("/shorten", async (req, res) => {
   console.log("Received shortening request:", req.body);
