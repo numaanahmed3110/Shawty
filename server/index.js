@@ -13,6 +13,7 @@ dotenv.config();
 
 // CORS configuration - must be first
 // CORS configuration
+// CORS configuration
 app.use(
   cors({
     origin: "https://shawty3110.vercel.app",
@@ -97,10 +98,13 @@ async function generateUniqueSlug() {
   return slug;
 }
 
+// Mount router
+app.use("/api", router);
 // Add this route handler at the beginning of your router configuration
-router.get("/api", (req, res) => {
+router.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome to the URL Shortener API" });
 });
+
 // URL Shortening endpoint
 router.post("/shorten", async (req, res) => {
   console.log("Received shortening request:", req.body);
@@ -238,9 +242,6 @@ app.get("/:slug", async (req, res) => {
     });
   }
 });
-
-// Mount router
-app.use("/api", router);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
