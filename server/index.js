@@ -10,6 +10,11 @@ import makeKey from "@jrc03c/make-key";
 
 const app = express();
 const router = express.Router();
+
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 // Mount router
 app.use("/api", router);
 // Add this route handler at the beginning of your router configuration
@@ -17,22 +22,17 @@ router.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome to the URL Shortener API" });
 });
 
-// CORS configuration
+// cors use------------
 app.use(
   cors({
-    origin: "*",
+    origin: "https://shawty3110.vercel.app",
     methods: "GET,POST,PUT,DELETE,OPTIONS",
-    allowedHeaders: "*",
+    allowedHeaders: "Content-Type",
     credentials: true,
   })
 );
 
 dotenv.config();
-
-// Middleware
-app.use(express.json());
-app.use(morgan("dev"));
-app.use(express.urlencoded({ extended: true }));
 
 // MongoDB connection with retry logic
 const connectWithRetry = async () => {
@@ -116,16 +116,18 @@ async function generateUniqueSlug() {
 
 // URL Shortening endpoint
 router.post("/shorten", async (req, res) => {
+  console.log("Request body:", req.body);
+
   console.log("Received shortening request:", req.body);
 
   try {
     // Add a 5 second delay
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
-    // Destructure URL from request body
+    // Get the URL from the request body
     const { url } = req.body;
 
-    // Validate URL
+    // Check if URL is provided
     if (!url) {
       return res.status(400).json({
         success: false,

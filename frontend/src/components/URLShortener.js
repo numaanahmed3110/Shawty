@@ -10,6 +10,8 @@ const URLShortener = ({ onShorten }) => {
     setLoading(true);
 
     try {
+      console.log("URL to shorten:", url);
+
       const response = await fetch(
         "https://shawty-server.vercel.app/api/shorten",
         {
@@ -18,6 +20,10 @@ const URLShortener = ({ onShorten }) => {
           body: JSON.stringify({ url }),
         }
       );
+
+      if (!response.ok) {
+        throw new Error(response.statusText || "Failed to fetch");
+      }
 
       const data = await response.json();
 
