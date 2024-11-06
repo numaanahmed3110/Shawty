@@ -22,11 +22,6 @@ const URLShortener = ({ onShorten }) => {
       );
 
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to shorten URL");
-      }
-
       // Call onShorten with the data
       onShorten(data);
       setUrl("");
