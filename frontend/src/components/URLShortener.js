@@ -21,10 +21,6 @@ const URLShortener = ({ onShorten }) => {
         }
       );
 
-      if (!response.ok) {
-        throw new Error(response.statusText || "Failed to fetch");
-      }
-
       const data = await response.json();
 
       if (!response.ok) {
