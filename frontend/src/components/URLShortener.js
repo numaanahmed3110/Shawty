@@ -13,7 +13,7 @@ const URLShortener = ({ onShorten }) => {
       console.log("URL to shorten:", url);
 
       const response = await fetch(
-        "https://shawty-server.vercel.app/api/shorten",
+        "https://shawty-server.vercel.app/api/urls",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

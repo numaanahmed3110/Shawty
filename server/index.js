@@ -23,14 +23,12 @@ router.get("/", (req, res) => {
 });
 
 // cors use------------
-app.use(
-  cors({
-    origin: "https://shawty3110.vercel.app",
-    methods: "GET,POST,PUT,DELETE,OPTIONS",
-    allowedHeaders: "Content-Type",
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: "https://shawty3110.vercel.app",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+}));
 
 dotenv.config();
 
