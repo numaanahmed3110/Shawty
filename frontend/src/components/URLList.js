@@ -6,9 +6,9 @@ const URLList = ({ urls }) => {
       <table className="w-full mt-8">
         <thead>
           <tr className="text-left text-gray-400 border-b border-gray-800">
-            <th className="py-3 px-4">Shortned Link</th>
+            <th className="py-3 px-4">Copy</th>
             <th className="py-3 px-4">Original Link</th>
-            <th className="py-3 px-4">QR Code</th>
+            <th className="py-3 px-4">Shortned Link</th>
             <th className="py-3 px-4">Clicks</th>
             <th className="py-3 px-4">Status</th>
             <th className="py-3 px-4">Date</th>
@@ -20,6 +20,19 @@ const URLList = ({ urls }) => {
               key={url.slug}
               className="border-b border-gray-800 hover:bg-gray-800"
             >
+              <td className="py-4 px-4">
+                <svg
+                  className="w-6 h-6 text-gray-400"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                </svg>
+              </td>
               <td className="py-4 px-4">
                 <a
                   href={url.shortenedUrl}
@@ -41,19 +54,7 @@ const URLList = ({ urls }) => {
                   {url.url}
                 </a>
               </td>
-              <td className="py-4 px-4">
-                <svg
-                  className="w-6 h-6 text-gray-400"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                </svg>
-              </td>
+
               <td className="py-4 px-4">{url.clicks}</td>
               <td className="py-4 px-4">
                 <span

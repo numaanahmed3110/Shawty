@@ -1,46 +1,39 @@
+// URLShortener.js
 import React, { useState } from "react";
 
 const URLShortener = ({ onShorten }) => {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
-  const [countdown, setCountdown] = useState(null);
+  const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
     try {
-      console.log("URL to shorten:", url);
+      const response = await fetch("http://localhost:3001/api/shorten", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
 
-      const response = await fetch(
-        "https://shawty-server.vercel.app/api/urls",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url }),
-        }
-      );
+      if (!response.ok) {
+        const errorData = await response.json();
+        setError(errorData.error || "Failed to shorten URL");
+        return;
+      }
 
-      const data = await response.json();
-      // Call onShorten with the data
-      onShorten(data);
-      setUrl("");
+      const { success, data } = await response.json();
 
-      // Start countdown
-      setCountdown(5);
-      const countdownInterval = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(countdownInterval);
-            window.location.reload();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+      if (success) {
+        onShorten(data); // Pass the entire data object to onShorten
+        setUrl("");
+      } else {
+        setError("Failed to shorten URL");
+      }
     } catch (error) {
-      console.error("Error:", error);
-      // You might want to add error handling UI here
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -91,10 +84,9 @@ const URLShortener = ({ onShorten }) => {
         </button>
       </form>
 
-      {/* Countdown Message */}
-      {countdown !== null && (
-        <div className="text-center text-white p-4 rounded-lg mt-4 animate-pulse">
-          Your URL will be ready in {countdown} seconds...
+      {error && (
+        <div className="text-center text-red-500 p-4 rounded-lg mt-4">
+          Error: {error}
         </div>
       )}
     </div>

@@ -1,3 +1,4 @@
+// App.js
 import React, { useState, useEffect } from "react";
 import Header from "./components/Header.js";
 import URLShortener from "./components/URLShortener.js";
@@ -14,38 +15,22 @@ function App() {
 
   const fetchUrls = async () => {
     try {
-      const response = await fetch("https://shawty-server.vercel.app/api/urls");
+      setLoading(true);
+      const response = await fetch("http://localhost:3001/api/urls");
       if (!response.ok) throw new Error("Failed to fetch URLs");
       const data = await response.json();
       setUrls(data);
     } catch (err) {
-      console.error("Error fetching URLs:", err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleShorten = async (newUrl) => {
-    try {
-      const response = await fetch(
-        "https://shawty-server.vercel.app/api/shorten",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(newUrl),
-        }
-      );
-      if (!response.ok) throw new Error("Failed to shorten URL");
-      const data = await response.json();
-      setUrls([data, ...urls]);
-    } catch (err) {
-      console.error("Error shortening URL:", err);
-      setError(err.message);
-    }
+  const handleShorten = (newUrl) => {
+    setUrls((prevUrls) => [newUrl, ...prevUrls]); // Add new URL to the top of the list
   };
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <Header />
