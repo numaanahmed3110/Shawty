@@ -2,7 +2,6 @@ import express, { Router } from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import { config } from "dotenv";
-import { ClerkExpressWithAuth } from "@clerk/clerk-sdk-node";
 import makeKey from "@jrc03c/make-key";
 
 // Initialize environment variables
@@ -60,15 +59,9 @@ const generateUniqueSlug = async () => {
   return slug;
 };
 
-// Middleware for authentication
-const authenticateUser = ClerkExpressWithAuth({
-  onError: (req, res) => res.status(401).json({ error: "Unauthorized" }),
-});
-
 // Shorten URL Route
 router.post("/shorten", async (req, res) => {
   const { url, localUrls } = req.body;
-  let userId = null;
 
   if (!url) return res.status(400).json({ error: "URL is required" });
 
@@ -77,43 +70,11 @@ router.post("/shorten", async (req, res) => {
     const slug = await generateUniqueSlug();
     const shortenedUrl = `${req.protocol}://${req.get("host")}/${slug}`;
 
-    // Authentication
-    const headers = req.headers.authorization;
-    if (headers) {
-      try {
-        const auth = ClerkExpressWithAuth();
-        await auth(req, res, () => {});
-        userId = req.auth?.userId;
-      } catch (err) {
-        console.error("Authentication failed", err);
-      }
-    }
-
-    // For authenticated users
-    if (userId) {
-      const userUrls = await UserUrls.findOneAndUpdate(
-        { userId },
-        {
-          $push: {
-            urls: {
-              slug,
-              shortenedUrl,
-              url: normalizedUrl,
-              clicks: 0,
-              createdAt: new Date(),
-            },
-          },
-        },
-        { upsert: true, new: true }
-      );
-      await userUrls.save();
-    } else {
-      // For unauthenticated users (local storage)
-      if (localUrls && localUrls.length >= 5) {
-        return res
-          .status(400)
-          .json({ error: "Maximum 5 URLs for unregistered users" });
-      }
+    // For unauthenticated users (local storage)
+    if (localUrls && localUrls.length >= 5) {
+      return res
+        .status(400)
+        .json({ error: "Maximum 5 URLs for unregistered users" });
     }
 
     res.status(201).json({
@@ -133,12 +94,10 @@ router.post("/shorten", async (req, res) => {
 });
 
 // Fetch User URLs Route
-router.get("/urls", authenticateUser, async (req, res) => {
-  const userId = req.auth?.userId;
-
+router.get("/urls", async (req, res) => {
   try {
-    const userUrls = await UserUrls.findOne({ userId });
-    res.status(200).json(userUrls?.urls || []);
+    const userUrls = await UserUrls.find();
+    res.status(200).json(userUrls || []);
   } catch (error) {
     console.error("Error fetching URLs:", error.message);
     res.status(500).json({ error: "Failed to fetch URLs" });
@@ -146,23 +105,18 @@ router.get("/urls", authenticateUser, async (req, res) => {
 });
 
 // Delete User URL Route
-router.delete("/urls/:slug", authenticateUser, async (req, res) => {
+router.delete("/urls/:slug", async (req, res) => {
   const { slug } = req.params;
-  const userId = req.auth?.userId;
 
   try {
-    const userUrls = await UserUrls.findOne({ userId });
-    if (!userUrls) {
+    const result = await UserUrls.updateMany(
+      {},
+      { $pull: { urls: { slug: slug } } }
+    );
+
+    if (result.modifiedCount === 0) {
       return res.status(404).json({ error: "URL not found" });
     }
-
-    const updatedUrls = userUrls.urls.filter((url) => url.slug !== slug);
-    if (updatedUrls.length === userUrls.urls.length) {
-      return res.status(404).json({ error: "URL not found" });
-    }
-
-    userUrls.urls = updatedUrls;
-    await userUrls.save();
 
     res
       .status(200)
