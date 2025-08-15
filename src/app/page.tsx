@@ -10,6 +10,16 @@ import URLList from "@/components/Home/URLList";
 export default function Home() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [autoClipboard, setAutoClipboard] = useState(false);
+
+  const handleUrlCreated = () => {
+    setRefreshTrigger((prev) => prev + 1);
+  };
+
+  const handleClipboardToggle = async (checked: boolean) => {
+    setAutoClipboard(checked);
+  };
 
   return (
     <div>
@@ -24,12 +34,19 @@ export default function Home() {
             streamlines your <br />
             online experience.
           </p>
-          <URLInput />
+          <URLInput
+            onUrlCreated={handleUrlCreated}
+            autoClipboard={autoClipboard}
+          />
           {error && (
             <div className="text-red-500 text-center mt-4">Error : {error}</div>
           )}
           <div className="flex items-center justify-center space-x-2 mt-6 mb-3 ">
-            <Switch id="clipboard" />
+            <Switch
+              id="clipboard"
+              checked={autoClipboard}
+              onCheckedChange={handleClipboardToggle}
+            />
             <Label
               htmlFor="clipboard"
               className="text-muted-foreground text-sm"
@@ -52,7 +69,7 @@ export default function Home() {
             />
           </div>
         </div>
-        <URLList />
+        <URLList refreshTrigger={refreshTrigger} />
       </main>
     </div>
   );

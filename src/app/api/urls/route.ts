@@ -4,6 +4,9 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
+    if (!process.env.MONGODB_URI) {
+      throw new Error("MONGODB_URI environment variable is not set");
+    }
     await dbConnect();
     const urls = await UrlModel.find({}).sort({ date: -1 });
 

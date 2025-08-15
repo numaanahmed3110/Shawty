@@ -6,6 +6,9 @@ import { dbConnect } from "@/lib/dbConnect";
 
 export async function POST(req: NextRequest) {
   try {
+    if (!process.env.MONGODB_URI) {
+      throw new Error("MONGODB_URI environment variable is not set");
+    }
     await dbConnect();
 
     const UrlSchema = z.object({
@@ -93,16 +96,16 @@ export async function POST(req: NextRequest) {
       status: newUrl.status,
       date: newUrl.date,
     });
-  } catch {
+  } catch (error) {
     console.log("❌ Error Creating Shortned URL");
 
     return NextResponse.json(
       {
-        error: "Internal Server Error",
+        error: "Failed to create shortened URL",
+        details:
+          process.env.NODE_ENV === "development" ? (error as Error).message : undefined,
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }
