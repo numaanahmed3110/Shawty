@@ -8,6 +8,7 @@ import Image from "next/image";
 import URLList from "@/components/Home/URLList";
 
 export default function Home() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState(null);
 
   return (
