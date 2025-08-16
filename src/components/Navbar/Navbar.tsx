@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { ModeToggle } from "./themeToggleButton";
+import { SignInButton } from "@clerk/nextjs";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -32,7 +33,9 @@ export default function Navbar() {
             </h1>
           </div>
           <div className="flex items-center justify-between gap-5">
-            <Button variant="primary">Login</Button>
+            <SignInButton mode="modal">
+              <Button variant="primary">Login</Button>
+            </SignInButton>
             <ModeToggle />
           </div>
         </nav>
