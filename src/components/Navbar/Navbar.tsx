@@ -3,7 +3,13 @@
 import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { ModeToggle } from "./themeToggleButton";
-import { SignInButton, useAuth, useUser, UserButton } from "@clerk/nextjs";
+import {
+  SignInButton,
+  useAuth,
+  useUser,
+  UserButton,
+  SignOutButton,
+} from "@clerk/nextjs";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -36,9 +42,26 @@ export default function Navbar() {
           </div>
           <div className="flex items-center justify-between gap-5">
             {!isLoaded ? (
-              <div>Loading...</div>
+              <div className="text-sm">Loading...</div>
             ) : isSignedIn ? (
-              <UserButton afterSignOutUrl="/" />
+              <div className="flex items-center gap-3">
+                <UserButton
+                  afterSignOutUrl="/"
+                  appearance={{
+                    elements: {
+                      avatarBox: {
+                        width: "50px",
+                        height: "50px",
+                      },
+                      avatarImage: {
+                        width: "45px",
+                        height: "45px",
+                        borderRadius: "50%",
+                      },
+                    },
+                  }}
+                />
+              </div>
             ) : (
               <SignInButton
                 mode="modal"
@@ -48,7 +71,6 @@ export default function Navbar() {
                 <Button variant="primary">Login</Button>
               </SignInButton>
             )}
-            <ModeToggle />
           </div>
         </nav>
       </div>
