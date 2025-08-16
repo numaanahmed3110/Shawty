@@ -2,19 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
-import { ModeToggle } from "./themeToggleButton";
 import {
   SignInButton,
   useAuth,
-  useUser,
+  // useUser,
   UserButton,
-  SignOutButton,
 } from "@clerk/nextjs";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { isSignedIn, isLoaded } = useAuth();
-  const { user } = useUser();
+  // const { user } = useUser();
 
   useEffect(() => {
     const handleScroll = () => {

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { customAlphabet } from "nanoid";
 import UrlModel from "@/models/urlSchema";
 import { dbConnect } from "@/lib/dbConnect";
+import { auth } from "@clerk/nextjs/server";
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,6 +11,8 @@ export async function POST(req: NextRequest) {
       throw new Error("MONGODB_URI environment variable is not set");
     }
     await dbConnect();
+
+    const { userId } = await auth();
 
     const UrlSchema = z.object({
       originalUrl: z
@@ -29,6 +32,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
     const parseUrl = UrlSchema.safeParse(body);
 
     if (!parseUrl.success) {
@@ -48,7 +52,11 @@ export async function POST(req: NextRequest) {
 
     const { originalUrl } = parseUrl.data;
 
-    const existingUrl = await UrlModel.findOne({ originalUrl });
+    const existingUrl = await UrlModel.findOne({
+      originalUrl,
+      userId: userId || null,
+    });
+
     if (existingUrl) {
       const host = req.headers.get("host");
       const protocol =
@@ -66,8 +74,12 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    let shortId: string;
     const nanoid = customAlphabet("1234567890abcdefghijklmnopqrstuvwxyz", 10);
-    const shortId = nanoid();
+    do {
+      shortId = nanoid();
+    } while (await UrlModel.exists({ shortId }));
+
     const host = req.headers.get("host");
     if (!host) {
       return NextResponse.json(
@@ -83,18 +95,24 @@ export async function POST(req: NextRequest) {
     const newUrl = await UrlModel.create({
       shortId,
       originalUrl,
+      userId: userId ?? null,
       clicks: 0,
       status: "active",
       date: new Date(),
     });
 
     return NextResponse.json({
+      id: newUrl._id,
       shortId: newUrl.shortId,
       originalUrl: newUrl.originalUrl,
       shortUrl: shortUrl,
+      userId: newUrl.userId,
       clicks: newUrl.clicks,
       status: newUrl.status,
       date: newUrl.date,
+      message: userId
+        ? "Url saved for user"
+        : "Guest Url created (Url will expire in 7 days)",
     });
   } catch (error) {
     console.log("❌ Error Creating Shortned URL");
@@ -103,7 +121,9 @@ export async function POST(req: NextRequest) {
       {
         error: "Failed to create shortened URL",
         details:
-          process.env.NODE_ENV === "development" ? (error as Error).message : undefined,
+          process.env.NODE_ENV === "development"
+            ? (error as Error).message
+            : undefined,
       },
       { status: 500 }
     );

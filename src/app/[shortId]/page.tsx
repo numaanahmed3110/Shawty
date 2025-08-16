@@ -2,13 +2,13 @@ import UrlModel from "@/models/urlSchema";
 import { dbConnect } from "@/lib/dbConnect";
 import { notFound, redirect } from "next/navigation";
 
-interface Props {
-  params: Promise<{ shortId: string }>;
-}
-
-export default async function RedirectPage({ params }: Props) {
+export default async function RedirectPage({
+  params,
+}: {
+  params: { shortId: string };
+}) {
   try {
-    const { shortId } = await params;
+    const { shortId } = params;
     console.log("🔍 Received shortId:", shortId);
     console.log("📏 ShortId length:", shortId?.length);
 

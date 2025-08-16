@@ -42,15 +42,15 @@ const UrlSchema = new Schema<UrlDocument>({
   },
 });
 
+UrlSchema.index({ shortId: 1, status: 1 });
+// also index userId+date for faster listing
+UrlSchema.index({ userId: 1, date: -1 });
+
 UrlSchema.index(
-  {
-    date: 1,
-  },
+  { date: 1 },
   {
     expireAfterSeconds: 60 * 60 * 24 * 7, // 7 days
-    partialFilterExpression: {
-      userId: null, // only guests
-    },
+    partialFilterExpression: { userId: null }, // only guests,
   }
 );
 

@@ -77,12 +77,12 @@ export default function URLList({ refreshTrigger }: UrlListProps) {
                   >
                     <td className="py-3 px-4 text-sm">
                       <a
-                        href={`http://localhost:3000/${url.shortId}`}
+                        href={url.shortUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-400 font-mono hover:text-blue-300 hover:underline transition-colors"
                       >
-                        {`http://localhost:3000/${url.shortId}`}
+                        {url.shortUrl}{" "}
                       </a>
                     </td>
                     <td className="py-3 px-6 text-sm">
