@@ -5,10 +5,10 @@ import { notFound, redirect } from "next/navigation";
 export default async function RedirectPage({
   params,
 }: {
-  params: { shortId: string };
+  params: Promise<{ shortId: string }>;
 }) {
   try {
-    const { shortId } = params;
+    const { shortId } = await params;
     console.log("🔍 Received shortId:", shortId);
     console.log("📏 ShortId length:", shortId?.length);
 
