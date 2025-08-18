@@ -11,7 +11,16 @@ export async function GET(req: NextRequest) {
     await dbConnect();
     const { userId } = await auth();
 
-    const filter = userId ? { userId } : { userId: null };
+    const sessionId = new URL(req.url).searchParams.get("sessionId");
+
+    let filter;
+    if (userId) {
+      filter = { userId };
+    } else if (sessionId) {
+      filter = { sessionId, userId: null };
+    } else {
+      return NextResponse.json([]);
+    }
     const limit = Number(new URL(req.url).searchParams.get("limit")) || 50;
 
     const urls = await UrlModel.find(filter).sort({ date: -1 }).limit(limit);

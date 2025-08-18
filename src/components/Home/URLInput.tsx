@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { getSessionId } from "@/lib/session";
 
 interface UrlInputProps {
   onUrlCreated?: () => void;
@@ -19,6 +20,12 @@ export default function URLInput({
   const [shortUrl, setShortUrl] = useState("");
   const [clipboardPasted, setClipboardPasted] = useState(false);
   const [error, setError] = useState("");
+  const [sessionId, setSessionId] = useState("");
+
+  useEffect(() => {
+    const id = getSessionId();
+    setSessionId(id);
+  }, []);
 
   useEffect(() => {
     const readClipboard = async () => {
@@ -68,8 +75,10 @@ export default function URLInput({
     if (!value.trim()) return;
     try {
       setLoading(true);
+      setError(""); // Clear previous errors
       const res = await axios.post("/api/shorten", {
         originalUrl: value,
+        sessionId,
       });
       setShortUrl(res.data.shortUrl);
       console.log("Shortned Url : ", shortUrl);

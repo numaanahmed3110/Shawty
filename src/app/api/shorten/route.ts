@@ -4,6 +4,7 @@ import { customAlphabet } from "nanoid";
 import UrlModel from "@/models/urlSchema";
 import { dbConnect } from "@/lib/dbConnect";
 import { auth } from "@clerk/nextjs/server";
+import { error } from "console";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,6 +20,7 @@ export async function POST(req: NextRequest) {
         .url("Invalid Url format")
         .min(1, "Url cannot be empty")
         .max(2048, "Url too long"),
+      sessionId: z.string().optional(),
     });
 
     let body;
@@ -50,11 +52,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { originalUrl } = parseUrl.data;
+    const { originalUrl, sessionId } = parseUrl.data;
+
+    if (!userId && sessionId) {
+      const existingUrlCount = await UrlModel.countDocuments({
+        sessionId,
+        status: "active",
+      });
+
+      if (existingUrlCount > 4) {
+        return NextResponse.json(
+          {
+            error:
+              "Free tier limit reached. Please sign up for unlimited usage",
+          },
+          { status: 429 }
+        );
+      }
+    }
 
     const existingUrl = await UrlModel.findOne({
       originalUrl,
-      userId: userId || null,
+      $or: [{ userId: userId || null }, { sessionId: sessionId || null }],
     });
 
     if (existingUrl) {
@@ -96,6 +115,7 @@ export async function POST(req: NextRequest) {
       shortId,
       originalUrl,
       userId: userId ?? null,
+      sessionId: !userId ? sessionId : null,
       clicks: 0,
       status: "active",
       date: new Date(),
@@ -107,6 +127,7 @@ export async function POST(req: NextRequest) {
       originalUrl: newUrl.originalUrl,
       shortUrl: shortUrl,
       userId: newUrl.userId,
+      sessionId: newUrl.sessionId,
       clicks: newUrl.clicks,
       status: newUrl.status,
       date: newUrl.date,

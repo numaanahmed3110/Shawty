@@ -1,17 +1,22 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import URLInput from "@/components/Home/URLInput";
 import Navbar from "@/components/Navbar/Navbar";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import Image from "next/image";
 import URLList from "@/components/Home/URLList";
+import { useAuth } from "@clerk/nextjs";
+import { getSessionId } from "@/lib/session";
+import axios from "axios";
 
 export default function Home() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [autoClipboard, setAutoClipboard] = useState(false);
+  const [remainingUrls, setRemainingUrls] = useState(4);
+  const { isSignedIn, isLoaded } = useAuth();
 
   const handleUrlCreated = () => {
     setRefreshTrigger((prev) => prev + 1);
@@ -20,6 +25,29 @@ export default function Home() {
   const handleClipboardToggle = async (checked: boolean) => {
     setAutoClipboard(checked);
   };
+
+  useEffect(() => {
+    if (isLoaded) {
+      setRefreshTrigger((prev) => prev + 1);
+    }
+  }, [isSignedIn, isLoaded]);
+
+  useEffect(() => {
+    const fetchRemainingUrls = async () => {
+      if (!isSignedIn && isLoaded) {
+        try {
+          const sessionId = getSessionId();
+          const res = await axios.get(
+            `/api/urls?sessionId=${encodeURIComponent(sessionId)}`
+          );
+          setRemainingUrls(Math.max(0, 4 - res.data.length));
+        } catch (error) {
+          console.error("Error fetching Url Count : ", error);
+        }
+      }
+    };
+    fetchRemainingUrls();
+  }, [isSignedIn, isLoaded, refreshTrigger]);
 
   return (
     <div>
@@ -56,8 +84,11 @@ export default function Home() {
           </div>
           <div className="flex justify-center mb-6 mt-4">
             <p className="text-sm text-muted-foreground ">
-              You can create <span className="text-[#EB568E] ">05</span> more
-              links. Register now to enjoy Unlimited usage.{" "}
+              You can create{" "}
+              <span className="text-[#EB568E] ">
+                {remainingUrls.toString().padStart(2, "0")}
+              </span>{" "}
+              more links. Register now to enjoy Unlimited usage.{" "}
             </p>
 
             <Image
