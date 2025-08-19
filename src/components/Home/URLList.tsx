@@ -1,3 +1,5 @@
+import { getSessionId } from "@/lib/session";
+import { SignedIn, useAuth } from "@clerk/nextjs";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
@@ -18,13 +20,27 @@ interface UrlData {
 export default function URLList({ refreshTrigger }: UrlListProps) {
   const [urls, setUrls] = useState<UrlData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [remainingUrls, setRemainingUrls] = useState(4);
+  const { isSignedIn } = useAuth();
 
   useEffect(() => {
     const fetchUrls = async () => {
       try {
         setLoading(true);
-        const res = await axios.get("/api/urls");
+        let apiUrl = "/api/urls";
+        if (!isSignedIn) {
+          const sessionId = getSessionId();
+          apiUrl += `?sessionId=${encodeURIComponent(sessionId)}`;
+        }
+        console.log("🌐 Calling API:", apiUrl); // Add this
+
+        const res = await axios.get(apiUrl);
+        console.log("📊 Response data:", res.data); // Add this
+
         setUrls(res.data);
+        if (!isSignedIn) {
+          setRemainingUrls(Math.max(0, 4 - res.data.length));
+        }
         console.log(res.data);
       } catch (error) {
         console.error("Error fetching URLs:", error);
@@ -34,7 +50,7 @@ export default function URLList({ refreshTrigger }: UrlListProps) {
     };
 
     fetchUrls();
-  }, [refreshTrigger]);
+  }, [isSignedIn, refreshTrigger]);
 
   return (
     <div className="w-full mt-8 px-12 mx-auto max-w-7xl">
