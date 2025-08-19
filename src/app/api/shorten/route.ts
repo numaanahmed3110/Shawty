@@ -4,7 +4,6 @@ import { customAlphabet } from "nanoid";
 import UrlModel from "@/models/urlSchema";
 import { dbConnect } from "@/lib/dbConnect";
 import { auth } from "@clerk/nextjs/server";
-import { error } from "console";
 
 export async function POST(req: NextRequest) {
   try {
@@ -53,39 +52,66 @@ export async function POST(req: NextRequest) {
     }
 
     const { originalUrl, sessionId } = parseUrl.data;
+    console.log("🔍 Received data:", { originalUrl, sessionId, userId });
 
     if (!userId && sessionId) {
       const existingUrlCount = await UrlModel.countDocuments({
         sessionId,
+        userId: null,
         status: "active",
       });
+
+      console.log("📊 Existing URLs count for session:", existingUrlCount);
 
       if (existingUrlCount > 4) {
         return NextResponse.json(
           {
             error:
-              "Free tier limit reached. Please sign up for unlimited usage",
+              "You've reached the limit of 4 URLs. Register now for unlimited usage!",
           },
-          { status: 429 }
+          { status: 403 }
         );
       }
     }
 
-    const existingUrl = await UrlModel.findOne({
-      originalUrl,
-      $or: [{ userId: userId || null }, { sessionId: sessionId || null }],
-    });
+    // Check if URL already exists
+    let existingUrl;
+    if (userId) {
+      // For logged-in users, check by userId
+      existingUrl = await UrlModel.findOne({
+        originalUrl,
+        userId,
+        status: "active",
+      });
+    } else if (sessionId) {
+      // For guest users, check by sessionId
+      existingUrl = await UrlModel.findOne({
+        originalUrl,
+        sessionId,
+        userId: null,
+        status: "active",
+      });
+    }
 
     if (existingUrl) {
+      console.log("🔄 URL already exists:", {
+        shortId: existingUrl.shortId,
+        sessionId: existingUrl.sessionId,
+        userId: existingUrl.userId,
+      });
+
       const host = req.headers.get("host");
       const protocol =
         process.env.NODE_ENV === "development" ? "http" : "https";
       const shortUrl = `${protocol}://${host}/${existingUrl.shortId}`;
 
       return NextResponse.json({
+        id: existingUrl._id,
         shortId: existingUrl.shortId,
         originalUrl: existingUrl.originalUrl,
         shortUrl: shortUrl,
+        userId: existingUrl.userId,
+        sessionId: existingUrl.sessionId,
         clicks: existingUrl.clicks,
         status: existingUrl.status,
         date: existingUrl.date,
@@ -109,7 +135,13 @@ export async function POST(req: NextRequest) {
 
     const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
     const shortUrl = `${protocol}://${host}/${shortId}`;
-    console.log(shortId, shortUrl);
+
+    console.log("💾 About to create URL with:", {
+      shortId,
+      originalUrl,
+      userId: userId ?? null,
+      sessionId: !userId ? sessionId : null,
+    });
 
     const newUrl = await UrlModel.create({
       shortId,
@@ -119,6 +151,13 @@ export async function POST(req: NextRequest) {
       clicks: 0,
       status: "active",
       date: new Date(),
+    });
+
+    console.log("💾 Created URL document:", {
+      shortId: newUrl.shortId,
+      userId: newUrl.userId,
+      sessionId: newUrl.sessionId,
+      originalUrl: newUrl.originalUrl,
     });
 
     return NextResponse.json({

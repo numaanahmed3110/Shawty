@@ -15,7 +15,6 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [autoClipboard, setAutoClipboard] = useState(false);
-  const [remainingUrls, setRemainingUrls] = useState(4);
   const { isSignedIn, isLoaded } = useAuth();
 
   const handleUrlCreated = () => {
@@ -32,22 +31,22 @@ export default function Home() {
     }
   }, [isSignedIn, isLoaded]);
 
-  useEffect(() => {
-    const fetchRemainingUrls = async () => {
-      if (!isSignedIn && isLoaded) {
-        try {
-          const sessionId = getSessionId();
-          const res = await axios.get(
-            `/api/urls?sessionId=${encodeURIComponent(sessionId)}`
-          );
-          setRemainingUrls(Math.max(0, 4 - res.data.length));
-        } catch (error) {
-          console.error("Error fetching Url Count : ", error);
-        }
-      }
-    };
-    fetchRemainingUrls();
-  }, [isSignedIn, isLoaded, refreshTrigger]);
+  // useEffect(() => {
+  //   const fetchRemainingUrls = async () => {
+  //     if (!isSignedIn && isLoaded) {
+  //       try {
+  //         const sessionId = getSessionId();
+  //         const res = await axios.get(
+  //           `/api/urls?sessionId=${encodeURIComponent(sessionId)}`
+  //         );
+  //         setRemainingUrls(Math.max(0, 4 - res.data.length));
+  //       } catch (error) {
+  //         console.error("Error fetching Url Count : ", error);
+  //       }
+  //     }
+  //   };
+  //   fetchRemainingUrls();
+  // }, [isSignedIn, isLoaded, refreshTrigger]);
 
   return (
     <div>
@@ -82,7 +81,7 @@ export default function Home() {
               Auto Paste from Clipboard
             </Label>
           </div>
-          <div className="flex justify-center mb-6 mt-4">
+          {/* <div className="flex justify-center mb-6 mt-4">
             <p className="text-sm text-muted-foreground ">
               You can create{" "}
               <span className="text-[#EB568E] ">
@@ -98,7 +97,7 @@ export default function Home() {
               height={15}
               width={15}
             />
-          </div>
+          </div> */}
         </div>
         <URLList refreshTrigger={refreshTrigger} />
       </main>

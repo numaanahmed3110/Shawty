@@ -6,7 +6,7 @@ export interface UrlDocument extends Document {
   shortId: string;
   originalUrl: string;
   userId: string | null;
-  session_id: string | null;
+  sessionId: string | null;
   clicks: number;
   status: "active" | "inactive";
   date: Date;
@@ -26,7 +26,7 @@ const UrlSchema = new Schema<UrlDocument>({
     type: String,
     default: null,
   }, // Clerk userId OR null for guests
-  session_id: {
+  sessionId: {
     type: String,
     default: null,
   },

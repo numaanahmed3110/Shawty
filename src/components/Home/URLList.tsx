@@ -32,7 +32,10 @@ export default function URLList({ refreshTrigger }: UrlListProps) {
           const sessionId = getSessionId();
           apiUrl += `?sessionId=${encodeURIComponent(sessionId)}`;
         }
+        console.log("🌐 Calling API:", apiUrl); // Add this
+
         const res = await axios.get(apiUrl);
+        console.log("📊 Response data:", res.data); // Add this
 
         setUrls(res.data);
         if (!isSignedIn) {
