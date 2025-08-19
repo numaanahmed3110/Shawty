@@ -4,11 +4,8 @@ import URLInput from "@/components/Home/URLInput";
 import Navbar from "@/components/Navbar/Navbar";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import Image from "next/image";
 import URLList from "@/components/Home/URLList";
 import { useAuth } from "@clerk/nextjs";
-import { getSessionId } from "@/lib/session";
-import axios from "axios";
 
 export default function Home() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
