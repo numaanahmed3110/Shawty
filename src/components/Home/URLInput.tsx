@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { getSessionId } from "@/lib/session";
+import { useAuth } from "@clerk/nextjs";
 
 interface UrlInputProps {
   onUrlCreated?: () => void;
@@ -19,6 +21,14 @@ export default function URLInput({
   const [shortUrl, setShortUrl] = useState("");
   const [clipboardPasted, setClipboardPasted] = useState(false);
   const [error, setError] = useState("");
+  const [sessionId, setSessionId] = useState("");
+  const [remainingUrls, setRemainingUrls] = useState(4);
+  const { isSignedIn, isLoaded } = useAuth();
+
+  useEffect(() => {
+    const id = getSessionId();
+    setSessionId(id);
+  }, []);
 
   useEffect(() => {
     const readClipboard = async () => {
@@ -61,27 +71,56 @@ export default function URLInput({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Check if guest user has reached limit
+    if (!isSignedIn && remainingUrls <= 0) {
+      setError(
+        "You've reached the limit of 4 URLs. Register now for unlimited usage!"
+      );
+      return;
+    }
     if (!validateUrl(value)) {
       setError("Please enter a valid URL");
       return;
     }
     if (!value.trim()) return;
+
     try {
       setLoading(true);
+      setError(""); // Clear previous errors
+
+      console.log("📤 Sending sessionId:", sessionId); // Add this
+
       const res = await axios.post("/api/shorten", {
         originalUrl: value,
+        sessionId,
       });
+
+      console.log("📥 Response data:", res.data); // Add this
+
       setShortUrl(res.data.shortUrl);
       console.log("Shortned Url : ", shortUrl);
       setValue("");
       setClipboardPasted(false);
+
+      // Update remaining URLs count for guest users
+      if (!isSignedIn) {
+        setRemainingUrls((prev) => Math.max(0, prev - 1));
+      }
+
       onUrlCreated?.();
     } catch (error) {
-      console.error("Error Shortning Url : ", error);
-      setError(
-        (axios.isAxiosError(error) && error.response?.data?.error) ||
-          "Something went wrong"
-      );
+      console.error("Error Shortening URL:", error);
+      if (axios.isAxiosError(error) && error.response?.status === 403) {
+        setError(
+          "You've reached the limit of 4 URLs. Register now for unlimited usage!"
+        );
+      } else {
+        setError(
+          (axios.isAxiosError(error) && error.response?.data?.error) ||
+            "Something went wrong"
+        );
+      }
       setTimeout(() => {
         setError("");
       }, 5000);
@@ -117,6 +156,7 @@ export default function URLInput({
             className="flex-1 pl-0.5 h-full w-full bg-transparent outline-none 
           border-none placeholder:text-muted-foreground text-sm"
             required
+            disabled={!isSignedIn && remainingUrls <= 0}
           />
           <Button
             type="submit"
@@ -124,11 +164,33 @@ export default function URLInput({
             variant="primary"
             className="h-10 px-5 text-xs rounded-full 
           whitespace-nowrap cursor-pointer"
+            disabled={loading || (!isSignedIn && remainingUrls <= 0)}
           >
             {loading ? "Shortening..." : "Shorten Now!"}
           </Button>
         </div>
       </form>
+
+      {/* Guest user limit warning */}
+      {!isSignedIn && isLoaded && (
+        <div className="mt-2 text-center">
+          {remainingUrls > 0 ? (
+            <p className="text-xs text-muted-foreground">
+              You can create{" "}
+              <span className="text-[#EB568E] font-semibold">
+                {remainingUrls.toString().padStart(2, "0")}
+              </span>{" "}
+              more links. Register now for unlimited usage.
+            </p>
+          ) : (
+            <div className="p-3 bg-orange-900/20 border border-orange-500 rounded-lg">
+              <p className="text-orange-400 text-sm font-medium">
+                🚫 Limit Reached! Register now for unlimited URL shortening.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
       {error && (
         <div className="mt-2 p-2 bg-red-900/20 border border-red-500 rounded-lg">
           <p className="text-red-400 text-xs">❌ {error}</p>
@@ -142,23 +204,6 @@ export default function URLInput({
           </p>
         </div>
       )}
-      {/* // Add after the clipboard feedback div:
-      {shortUrl && (
-        <div className="mt-4 p-4 bg-green-900/20 border border-green-500 rounded-lg">
-          <p className="text-green-400">✅ URL shortened successfully!</p>
-          <div className="mt-2 flex items-center justify-between">
-            <p className="text-sm text-blue-400 font-mono break-all">
-              {shortUrl}
-            </p>
-            <button
-              onClick={() => navigator.clipboard.writeText(shortUrl)}
-              className="text-xs text-blue-400 hover:text-blue-300 ml-2 px-2 py-1 border border-blue-400 rounded"
-            >
-              Copy
-            </button>
-          </div>
-        </div>
-      )} */}
     </div>
   );
 }

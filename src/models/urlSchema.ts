@@ -6,6 +6,7 @@ export interface UrlDocument extends Document {
   shortId: string;
   originalUrl: string;
   userId: string | null;
+  sessionId: string | null;
   clicks: number;
   status: "active" | "inactive";
   date: Date;
@@ -25,7 +26,10 @@ const UrlSchema = new Schema<UrlDocument>({
     type: String,
     default: null,
   }, // Clerk userId OR null for guests
-
+  sessionId: {
+    type: String,
+    default: null,
+  },
   clicks: {
     type: Number,
     default: 0,
@@ -37,7 +41,7 @@ const UrlSchema = new Schema<UrlDocument>({
   },
   date: {
     type: Date,
-    default: Date.now, // ✅ function reference, generates new timestamp per doc
+    default: Date.now,
     index: true,
   },
 });
@@ -45,12 +49,18 @@ const UrlSchema = new Schema<UrlDocument>({
 UrlSchema.index({ shortId: 1, status: 1 });
 // also index userId+date for faster listing
 UrlSchema.index({ userId: 1, date: -1 });
+UrlSchema.index({ sessionId: 1, date: -1 }); // Add index for sessionId
 
 UrlSchema.index(
   { date: 1 },
   {
     expireAfterSeconds: 60 * 60 * 24 * 7, // 7 days
-    partialFilterExpression: { userId: null }, // only guests,
+    partialFilterExpression: {
+      $or: [
+        { userId: null, sessionId: null },
+        { userId: null, sessionId: { $ne: null } },
+      ],
+    }, // only guests,
   }
 );
 
