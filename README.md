@@ -1,6 +1,5 @@
-# 🔗 SHAWTY - URL Shortener
+# 🔗 SHAWTY -making looong links little...
 
-**Making looong links little...**
 
 A modern URL shortening service built with Next.js 15, featuring user authentication and guest access.
 
