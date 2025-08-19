@@ -23,6 +23,7 @@ A modern URL shortening service built with Next.js 15, featuring user authentica
 ## 🚀 Quick Start
 
 1. **Clone & Install**
+
    ```bash
    git clone https://github.com/numaanahmed3110/shawty.git
    cd shawty
@@ -30,6 +31,7 @@ A modern URL shortening service built with Next.js 15, featuring user authentica
    ```
 
 2. **Environment Setup**
+
    ```env
    MONGODB_URI=mongodb://localhost:27017/shawty
    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
@@ -38,47 +40,12 @@ A modern URL shortening service built with Next.js 15, featuring user authentica
    ```
 
 3. **Run Development Server**
+
    ```bash
    npm run dev
    ```
 
 4. **Open** [http://localhost:3000](http://localhost:3000)
-
-## 📁 Project Structure
-
-```
-src/
-├── app/
-│   ├── api/shorten/     # URL shortening
-│   ├── api/urls/        # URL retrieval
-│   └── [shortId]/       # Redirect handler
-├── components/
-│   ├── Home/            # URLInput, URLList
-│   └── ui/              # Reusable components
-├── lib/                 # Utils & DB connection
-└── models/              # Database schemas
-```
-
-## 🔧 API Endpoints
-
-### Create Short URL
-```bash
-POST /api/shorten
-{
-  "originalUrl": "https://example.com",
-  "sessionId": "session_123" // for guests
-}
-```
-
-### Get URLs
-```bash
-GET /api/urls?sessionId=session_123
-```
-
-### Redirect
-```bash
-GET /abc123def0  # Redirects to original URL
-```
 
 ## 🎯 Key Features
 
@@ -90,13 +57,10 @@ GET /abc123def0  # Redirects to original URL
 ## 🚀 Deployment
 
 Deploy on Vercel:
+
 1. Connect GitHub repo
 2. Add environment variables
 3. Deploy!
-
-## 📝 License
-
-MIT License
 
 ---
 
